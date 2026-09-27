@@ -1,0 +1,2570 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Saltpan Production Prediction</title>
+
+    <!-- FONT -->
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- FONT AWESOME -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+    <!-- CHART.JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- PROJECT CSS -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     LOADING SCREEN
+========================================================= -->
+
+<div
+    class="loading-screen hidden"
+    id="loadingScreen"
+>
+
+    <div class="loader-content">
+
+        <div class="loader"></div>
+
+        <p id="loadingMessage">
+            Loading weather information...
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<header class="top-header">
+
+    <nav class="navbar">
+
+        <div class="logo">
+
+            <div class="logo-mark">
+                <i class="fa-solid fa-sun"></i>
+            </div>
+
+            <div class="logo-text">
+
+                <strong>
+                    Saltpan Production Prediction
+                </strong>
+
+                <span>
+                    Weather-Based Suitability Analysis
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="live-status">
+
+            <span class="live-dot"></span>
+
+            Weather Data Active
+
+        </div>
+
+    </nav>
+
+
+    <!-- HERO -->
+
+    <div class="hero">
+
+        <div class="hero-tag">
+            Weather Analysis
+        </div>
+
+        <h1>
+            Saltpan Production Prediction
+        </h1>
+
+        <p>
+            Weather-based analysis for identifying suitable
+            conditions for salt manufacturing across selected
+            coastal locations in the Thoothukudi region.
+        </p>
+
+    </div>
+
+</header>
+
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
+
+<main class="main-container">
+
+
+    <!-- =====================================================
+         LOCATION
+    ====================================================== -->
+
+    <section class="location-panel">
+
+        <div>
+
+            <label
+                class="field-label"
+                for="locationSelect"
+            >
+                Study Location
+            </label>
+
+            <div class="select-box">
+
+                <select
+                    id="locationSelect"
+                    onchange="changeLocation()"
+                >
+
+                    {% for id, location in locations.items() %}
+
+                    <option value="{{ id }}">
+                        {{ location.name }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <i
+                    class="fa-solid fa-chevron-down select-icon"
+                ></i>
+
+            </div>
+
+        </div>
+
+
+        <!-- CLOCK -->
+
+        <div class="clock-box">
+
+            <div
+                class="clock-date"
+                id="currentDate"
+            >
+                Loading...
+            </div>
+
+            <div
+                class="clock-time"
+                id="currentTime"
+            >
+                --:--:--
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ERROR
+    ====================================================== -->
+
+    <div
+        class="error-box"
+        id="errorBox"
+    ></div>
+
+
+    <!-- =====================================================
+         WEATHER PARAMETERS
+    ====================================================== -->
+
+    <section class="weather-parameter-card">
+
+        <div class="parameter-heading">
+
+            <h2>
+                Weather Parameters
+            </h2>
+
+            <p>
+                Adjust the weather values manually or fetch the
+                current forecast for the selected location.
+            </p>
+
+        </div>
+
+
+        <div class="parameter-grid">
+
+
+            <!-- TEMPERATURE -->
+
+            <div class="parameter-item">
+
+                <label for="temperatureInput">
+                    Temperature
+                </label>
+
+                <div class="parameter-input">
+
+                    <input
+                        type="number"
+                        id="temperatureInput"
+                        value="0"
+                        step="0.1"
+                    >
+
+                    <span class="parameter-unit">
+                        °C
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- HUMIDITY -->
+
+            <div class="parameter-item">
+
+                <label for="humidityInput">
+                    Humidity
+                </label>
+
+                <div class="parameter-input">
+
+                    <input
+                        type="number"
+                        id="humidityInput"
+                        value="0"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                    >
+
+                    <span class="parameter-unit">
+                        %
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- WIND -->
+
+            <div class="parameter-item">
+
+                <label for="windInput">
+                    Wind Speed
+                </label>
+
+                <div class="parameter-input">
+
+                    <input
+                        type="number"
+                        id="windInput"
+                        value="0"
+                        step="0.1"
+                        min="0"
+                    >
+
+                    <span class="parameter-unit">
+                        m/s
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- RAINFALL -->
+
+            <div class="parameter-item">
+
+                <label for="rainfallInput">
+                    Rainfall
+                </label>
+
+                <div class="parameter-input">
+
+                    <input
+                        type="number"
+                        id="rainfallInput"
+                        value="0"
+                        step="0.1"
+                        min="0"
+                    >
+
+                    <span class="parameter-unit">
+                        mm
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             BUTTONS
+        ================================================== -->
+
+        <div class="weather-actions">
+
+            <button
+                type="button"
+                class="get-weather-btn"
+                id="getWeatherButton"
+                onclick="getWeatherData()"
+            >
+
+                <i class="fa-solid fa-cloud-sun"></i>
+
+                Get Weather
+
+            </button>
+
+
+            <button
+                type="button"
+                class="predict-btn"
+                id="predictButton"
+                onclick="predictFromParameters()"
+            >
+
+                <i class="fa-solid fa-brain"></i>
+
+                Predict
+
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         CURRENT CONDITIONS
+    ====================================================== -->
+
+    <div class="section-heading">
+
+        <h2>
+            Current Conditions
+        </h2>
+
+        <p>
+            Weather conditions and current suitability prediction
+        </p>
+
+    </div>
+
+
+    <section class="dashboard-grid">
+
+
+        <!-- =================================================
+             SUITABILITY CARD
+        ================================================== -->
+
+        <div class="card suitability-card">
+
+            <div class="card-label">
+                Current Suitability
+            </div>
+
+            <div class="suitability-content">
+
+                <div
+                    class="status-circle suitable"
+                    id="statusIcon"
+                >
+
+                    <i class="fa-solid fa-minus"></i>
+
+                </div>
+
+
+                <div>
+
+                    <div
+                        class="status-text suitable"
+                        id="statusText"
+                    >
+                        Waiting
+                    </div>
+
+
+                    <div
+                        class="status-description"
+                        id="statusDescription"
+                    >
+                        Select a location and click
+                        "Get Weather" to fetch data.
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- MODEL CONFIDENCE -->
+
+            <div class="probability-area">
+
+                <div class="probability-label">
+
+                    <span>
+                        Model Confidence
+                    </span>
+
+                    <strong
+                        id="suitableProbability"
+                    >
+                        0%
+                    </strong>
+
+                </div>
+
+
+                <div class="progress-track">
+
+                    <div
+                        class="progress-fill"
+                        id="probabilityBar"
+                    ></div>
+
+                </div>
+
+
+                <div
+                    class="probability-note"
+                    id="probabilityNote"
+                >
+                    Confidence is based on Random Forest tree votes.
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             WEATHER CARD
+        ================================================== -->
+
+        <div class="card weather-card">
+
+            <div class="weather-header">
+
+                <div class="weather-title">
+                    Current Weather
+                </div>
+
+                <div
+                    class="forecast-time"
+                    id="forecastTime"
+                >
+                    Click Get Weather
+                </div>
+
+            </div>
+
+
+            <div class="weather-grid">
+
+
+                <!-- TEMPERATURE -->
+
+                <div class="weather-item">
+
+                    <div class="weather-icon">
+                        <i class="fa-solid fa-temperature-half"></i>
+                    </div>
+
+                    <div class="weather-name">
+                        Temperature
+                    </div>
+
+                    <div class="weather-value">
+
+                        <span id="temperature">
+                            --
+                        </span>
+
+                        <span class="weather-unit">
+                            °C
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- HUMIDITY -->
+
+                <div class="weather-item">
+
+                    <div class="weather-icon">
+                        <i class="fa-solid fa-droplet"></i>
+                    </div>
+
+                    <div class="weather-name">
+                        Humidity
+                    </div>
+
+                    <div class="weather-value">
+
+                        <span id="humidity">
+                            --
+                        </span>
+
+                        <span class="weather-unit">
+                            %
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- RAINFALL -->
+
+                <div class="weather-item">
+
+                    <div class="weather-icon">
+                        <i class="fa-solid fa-cloud-rain"></i>
+                    </div>
+
+                    <div class="weather-name">
+                        Rainfall
+                    </div>
+
+                    <div class="weather-value">
+
+                        <span id="rainfall">
+                            --
+                        </span>
+
+                        <span class="weather-unit">
+                            mm
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- WIND -->
+
+                <div class="weather-item">
+
+                    <div class="weather-icon">
+                        <i class="fa-solid fa-wind"></i>
+                    </div>
+
+                    <div class="weather-name">
+                        Wind Speed
+                    </div>
+
+                    <div class="weather-value">
+
+                        <span id="wind">
+                            --
+                        </span>
+
+                        <span class="weather-unit">
+                            m/s
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         7 DAY FORECAST
+    ====================================================== -->
+
+    <section class="forecast-section">
+
+        <div class="section-heading">
+
+            <h2>
+                7-Day Suitability Forecast
+            </h2>
+
+            <p>
+                Predicted suitability based on forecast weather conditions
+            </p>
+
+        </div>
+
+
+        <div class="card full-card">
+
+            <div class="card-heading">
+
+                <div>
+
+                    <h2>
+                        Forecast Overview
+                    </h2>
+
+                    <p>
+                        Select a day to view its hourly weather
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- DAYS -->
+
+            <div
+                class="day-selector"
+                id="daySelector"
+            ></div>
+
+
+            <!-- DAILY CHART -->
+
+            <div class="chart-box">
+
+                <canvas id="dailyChart"></canvas>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         HOURLY FORECAST
+    ====================================================== -->
+
+    <section class="hourly-section">
+
+        <div class="section-heading">
+
+            <h2>
+                Hourly Weather Analysis
+            </h2>
+
+            <p>
+                Weather parameters and suitability classification
+            </p>
+
+        </div>
+
+
+        <div class="card full-card">
+
+
+            <!-- SELECTED DAY -->
+
+            <div class="selected-day">
+
+                <h3 id="selectedDayTitle">
+                    Hourly Weather
+                </h3>
+
+                <p id="selectedDaySubtitle">
+                    Click "Get Weather" to load the forecast.
+                </p>
+
+            </div>
+
+
+            <!-- HOURLY CHART -->
+
+            <div class="hourly-chart">
+
+                <canvas id="hourlyChart"></canvas>
+
+            </div>
+
+
+            <!-- TABLE -->
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Time
+                            </th>
+
+                            <th>
+                                Temperature
+                            </th>
+
+                            <th>
+                                Humidity
+                            </th>
+
+                            <th>
+                                Rainfall
+                            </th>
+
+                            <th>
+                                Wind Speed
+                            </th>
+
+                            <th>
+                                Suitability
+                            </th>
+
+                            <th>
+                                Model Confidence
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="hourlyTable"></tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer class="footer">
+
+        <strong>
+            Saltpan Production Prediction
+        </strong>
+
+        <br>
+
+        Weather-Based Suitability Analysis
+
+        <br><br>
+
+        Historical weather data is used to train the
+        Random Forest model. Future weather values shown
+        in the dashboard are forecast values.
+
+        <br><br>
+
+        <small>
+            Model confidence represents the proportion of
+            Random Forest trees voting for the predicted class.
+            It is not a measured probability of actual salt production.
+        </small>
+
+    </footer>
+
+
+</main>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+
+// ============================================================
+// GLOBAL VARIABLES
+// ============================================================
+
+let dailyData = [];
+
+let hourlyData = [];
+
+let selectedDate = null;
+
+let dailyChart = null;
+
+let hourlyChart = null;
+
+
+// ============================================================
+// DOM HELPER
+// ============================================================
+
+function element(id) {
+
+    return document.getElementById(id);
+
+}
+
+
+// ============================================================
+// CLOCK
+// ============================================================
+
+function updateClock() {
+
+    const now = new Date();
+
+
+    const dateOptions = {
+
+        timeZone: "Asia/Kolkata",
+
+        weekday: "long",
+
+        day: "2-digit",
+
+        month: "long",
+
+        year: "numeric"
+
+    };
+
+
+    const timeOptions = {
+
+        timeZone: "Asia/Kolkata",
+
+        hour: "2-digit",
+
+        minute: "2-digit",
+
+        second: "2-digit",
+
+        hour12: true
+
+    };
+
+
+    element("currentDate").textContent =
+
+        new Intl.DateTimeFormat(
+            "en-IN",
+            dateOptions
+        ).format(now);
+
+
+    element("currentTime").textContent =
+
+        new Intl.DateTimeFormat(
+            "en-IN",
+            timeOptions
+        ).format(now);
+
+}
+
+
+// ============================================================
+// LOADING
+// ============================================================
+
+function showLoading(message) {
+
+    element("loadingMessage").textContent =
+        message || "Loading weather information...";
+
+
+    element("loadingScreen").classList.remove(
+        "hidden"
+    );
+
+}
+
+
+function hideLoading() {
+
+    element("loadingScreen").classList.add(
+        "hidden"
+    );
+
+}
+
+
+// ============================================================
+// ERROR
+// ============================================================
+
+function showError(message) {
+
+    const box = element("errorBox");
+
+    box.textContent = message;
+
+    box.style.display = "block";
+
+}
+
+
+function hideError() {
+
+    element("errorBox").style.display = "none";
+
+}
+
+
+// ============================================================
+// RESET PARAMETERS
+// ============================================================
+
+function resetParameters() {
+
+    element("temperatureInput").value = 0;
+
+    element("humidityInput").value = 0;
+
+    element("windInput").value = 0;
+
+    element("rainfallInput").value = 0;
+
+}
+
+
+// ============================================================
+// RESET DASHBOARD
+// ============================================================
+
+function resetDashboard() {
+
+    element("temperature").textContent = "--";
+
+    element("humidity").textContent = "--";
+
+    element("rainfall").textContent = "--";
+
+    element("wind").textContent = "--";
+
+
+    element("forecastTime").textContent =
+        "Click Get Weather";
+
+
+    element("statusText").textContent =
+        "Waiting";
+
+
+    element("statusText").className =
+        "status-text suitable";
+
+
+    element("statusDescription").textContent =
+        'Select a location and click "Get Weather" to fetch data.';
+
+
+    element("statusIcon").className =
+        "status-circle suitable";
+
+
+    element("statusIcon").innerHTML =
+        '<i class="fa-solid fa-minus"></i>';
+
+
+    element("suitableProbability").textContent =
+        "0%";
+
+
+    element("probabilityBar").style.width =
+        "0%";
+
+
+    element("probabilityNote").textContent =
+        "Confidence is based on Random Forest tree votes.";
+
+
+    element("daySelector").innerHTML = "";
+
+    element("hourlyTable").innerHTML = "";
+
+
+    element("selectedDayTitle").textContent =
+        "Hourly Weather";
+
+
+    element("selectedDaySubtitle").textContent =
+        'Click "Get Weather" to load the forecast.';
+
+
+    dailyData = [];
+
+    hourlyData = [];
+
+    selectedDate = null;
+
+
+    if (dailyChart) {
+
+        dailyChart.destroy();
+
+        dailyChart = null;
+
+    }
+
+
+    if (hourlyChart) {
+
+        hourlyChart.destroy();
+
+        hourlyChart = null;
+
+    }
+
+}
+
+
+// ============================================================
+// CURRENT WEATHER
+// ============================================================
+
+async function loadCurrentPrediction() {
+
+    const locationId =
+        element("locationSelect").value;
+
+
+    const response = await fetch(
+        `/current_prediction?location_id=${encodeURIComponent(locationId)}`
+    );
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            `Server error: ${response.status}`
+        );
+
+    }
+
+
+    const result = await response.json();
+
+
+    if (!result.success) {
+
+        throw new Error(
+            result.message || "Unable to load current prediction."
+        );
+
+    }
+
+
+    const data = result.data;
+
+
+    // ------------------------------------------
+    // FILL INPUT PARAMETERS
+    // ------------------------------------------
+
+    element("temperatureInput").value =
+        data.temperature;
+
+
+    element("humidityInput").value =
+        data.humidity;
+
+
+    element("rainfallInput").value =
+        data.rainfall;
+
+
+    element("windInput").value =
+        data.wind;
+
+
+    // ------------------------------------------
+    // WEATHER DISPLAY
+    // ------------------------------------------
+
+    element("temperature").textContent =
+        data.temperature;
+
+
+    element("humidity").textContent =
+        data.humidity;
+
+
+    element("rainfall").textContent =
+        data.rainfall;
+
+
+    element("wind").textContent =
+        data.wind;
+
+
+    element("forecastTime").textContent =
+        data.forecast_time;
+
+
+    // ------------------------------------------
+    // PREDICTION
+    // ------------------------------------------
+
+    updatePredictionDisplay({
+
+        status: data.status,
+
+        suitable_probability:
+            data.suitable_probability,
+
+        not_suitable_probability:
+            data.not_suitable_probability
+
+    });
+
+}
+
+
+// ============================================================
+// UPDATE PREDICTION DISPLAY
+// ============================================================
+
+function updatePredictionDisplay(data) {
+
+    const status =
+        data.status;
+
+
+    const statusText =
+        element("statusText");
+
+
+    const statusIcon =
+        element("statusIcon");
+
+
+    statusText.textContent =
+        status;
+
+
+    if (status === "Suitable") {
+
+        statusText.className =
+            "status-text suitable";
+
+
+        statusIcon.className =
+            "status-circle suitable";
+
+
+        statusIcon.innerHTML =
+            '<i class="fa-solid fa-check"></i>';
+
+
+        element("statusDescription").textContent =
+            "The current weather conditions are classified as suitable for salt manufacturing.";
+
+    }
+
+    else {
+
+        statusText.className =
+            "status-text not-suitable";
+
+
+        statusIcon.className =
+            "status-circle not-suitable";
+
+
+        statusIcon.innerHTML =
+            '<i class="fa-solid fa-xmark"></i>';
+
+
+        element("statusDescription").textContent =
+            "The current weather conditions are classified as not suitable for salt manufacturing.";
+
+    }
+
+
+    const probability =
+        Number(data.suitable_probability);
+
+
+    const safeProbability =
+        Number.isFinite(probability)
+
+            ? Math.max(
+                0,
+                Math.min(
+                    100,
+                    probability
+                )
+            )
+
+            : 0;
+
+
+    element("suitableProbability").textContent =
+        safeProbability.toFixed(2) + "%";
+
+
+    element("probabilityBar").style.width =
+        safeProbability + "%";
+
+
+    element("probabilityNote").textContent =
+
+        "Random Forest confidence: "
+        +
+        safeProbability.toFixed(2)
+        +
+        "% of trees voted for Suitable.";
+
+}
+
+
+// ============================================================
+// GET WEATHER BUTTON
+// ============================================================
+
+async function getWeatherData() {
+
+    const button =
+        element("getWeatherButton");
+
+
+    const originalText =
+        button.innerHTML;
+
+
+    button.disabled = true;
+
+
+    button.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin"></i> Fetching Weather...';
+
+
+    showLoading(
+        "Fetching weather data..."
+    );
+
+
+    hideError();
+
+
+    try {
+
+        await loadCurrentPrediction();
+
+        await loadForecast();
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Weather error:",
+            error
+        );
+
+
+        showError(
+            "Unable to fetch weather data: " +
+            error.message
+        );
+
+    }
+
+    finally {
+
+        button.disabled = false;
+
+        button.innerHTML = originalText;
+
+        hideLoading();
+
+    }
+
+}
+
+
+// ============================================================
+// MANUAL PREDICTION
+// ============================================================
+
+async function predictFromParameters() {
+
+    const button =
+        element("predictButton");
+
+
+    const originalText =
+        button.innerHTML;
+
+
+    // --------------------------------------------------------
+    // DISABLE BUTTON WHILE PREDICTING
+    // --------------------------------------------------------
+
+    button.disabled = true;
+
+
+    button.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin"></i> Predicting...';
+
+
+    hideError();
+
+
+    try {
+
+
+        // ====================================================
+        // READ INPUT VALUES
+        // ====================================================
+
+        const temperature =
+            parseFloat(
+                element("temperatureInput").value
+            );
+
+
+        const humidity =
+            parseFloat(
+                element("humidityInput").value
+            );
+
+
+        const wind =
+            parseFloat(
+                element("windInput").value
+            );
+
+
+        const rainfall =
+            parseFloat(
+                element("rainfallInput").value
+            );
+
+
+        // ====================================================
+        // VALIDATION
+        // ====================================================
+
+        if (!Number.isFinite(temperature)) {
+
+            throw new Error(
+                "Please enter a valid temperature."
+            );
+
+        }
+
+
+        if (
+            !Number.isFinite(humidity) ||
+            humidity < 0 ||
+            humidity > 100
+        ) {
+
+            throw new Error(
+                "Humidity must be between 0% and 100%."
+            );
+
+        }
+
+
+        if (
+            !Number.isFinite(wind) ||
+            wind < 0
+        ) {
+
+            throw new Error(
+                "Wind speed cannot be negative."
+            );
+
+        }
+
+
+        if (
+            !Number.isFinite(rainfall) ||
+            rainfall < 0
+        ) {
+
+            throw new Error(
+                "Rainfall cannot be negative."
+            );
+
+        }
+
+
+        // ====================================================
+        // SEND REQUEST TO FLASK
+        // ====================================================
+
+        const response = await fetch(
+            "/predict",
+            {
+
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type":
+                        "application/json"
+
+                },
+
+                body: JSON.stringify({
+
+                    temperature:
+                        temperature,
+
+                    humidity:
+                        humidity,
+
+                    wind:
+                        wind,
+
+                    rainfall:
+                        rainfall
+
+                })
+
+            }
+        );
+
+
+        // ====================================================
+        // READ SERVER RESPONSE
+        // ====================================================
+
+        const responseText =
+            await response.text();
+
+
+        let result;
+
+
+        try {
+
+            result =
+                JSON.parse(
+                    responseText
+                );
+
+        }
+
+        catch (jsonError) {
+
+            console.error(
+                "Invalid server response:",
+                responseText
+            );
+
+
+            throw new Error(
+                "The server did not return a valid JSON prediction response."
+            );
+
+        }
+
+
+        // ====================================================
+        // CHECK HTTP STATUS
+        // ====================================================
+
+        if (!response.ok) {
+
+            throw new Error(
+
+                result.message ||
+
+                `Server error: ${response.status}`
+
+            );
+
+        }
+
+
+        // ====================================================
+        // CHECK FLASK SUCCESS
+        // ====================================================
+
+        if (!result.success) {
+
+            throw new Error(
+
+                result.message ||
+
+                "Prediction failed."
+
+            );
+
+        }
+
+
+        // ====================================================
+        // GET RESULT
+        // ====================================================
+
+        const data =
+            result.data;
+
+
+        console.log(
+            "Prediction result:",
+            data
+        );
+
+
+        // ====================================================
+        // UPDATE WEATHER DISPLAY
+        // ====================================================
+
+        element("temperature").textContent =
+            temperature;
+
+
+        element("humidity").textContent =
+            humidity;
+
+
+        element("wind").textContent =
+            wind;
+
+
+        element("rainfall").textContent =
+            rainfall;
+
+
+        element("forecastTime").textContent =
+            "Manual Input";
+
+
+        // ====================================================
+        // UPDATE SUITABILITY
+        // ====================================================
+
+        updatePredictionDisplay({
+
+            status:
+                data.status,
+
+            suitable_probability:
+                data.suitable_probability,
+
+            not_suitable_probability:
+                data.not_suitable_probability
+
+        });
+
+
+        // ====================================================
+        // SUCCESS
+        // ====================================================
+
+        console.log(
+            "Manual prediction completed successfully."
+        );
+
+    }
+
+
+    catch (error) {
+
+        console.error(
+            "Prediction error:",
+            error
+        );
+
+
+        showError(
+            "Unable to make prediction: " +
+            error.message
+        );
+
+    }
+
+
+    finally {
+
+        // ====================================================
+        // ALWAYS ENABLE BUTTON AGAIN
+        // ====================================================
+
+        button.disabled = false;
+
+        button.innerHTML =
+            originalText;
+
+    }
+
+}
+
+
+// ============================================================
+// FORECAST
+// ============================================================
+
+async function loadForecast() {
+
+    const locationId =
+        element("locationSelect").value;
+
+
+    const response =
+        await fetch(
+            `/forecast?location_id=${encodeURIComponent(locationId)}`
+        );
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            `Forecast server error: ${response.status}`
+        );
+
+    }
+
+
+    const result =
+        await response.json();
+
+
+    if (!result.success) {
+
+        throw new Error(
+            result.message || "Unable to load forecast."
+        );
+
+    }
+
+
+    dailyData =
+        result.daily || [];
+
+
+    hourlyData =
+        result.hourly || [];
+
+
+    renderDaySelector();
+
+    renderDailyChart();
+
+
+    if (dailyData.length > 0) {
+
+        selectDay(
+            dailyData[0].date
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// LOCATION CHANGE
+// ============================================================
+
+function changeLocation() {
+
+    selectedDate = null;
+
+    resetParameters();
+
+    resetDashboard();
+
+    hideError();
+
+}
+
+
+// ============================================================
+// DAY SELECTOR
+// ============================================================
+
+function renderDaySelector() {
+
+    const container =
+        element("daySelector");
+
+
+    container.innerHTML =
+        "";
+
+
+    dailyData.forEach(
+        (day, index) => {
+
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+
+            div.className =
+                "day-item";
+
+
+            div.dataset.date =
+                day.date;
+
+
+            div.addEventListener(
+                "click",
+                function() {
+
+                    selectDay(
+                        day.date
+                    );
+
+                }
+            );
+
+
+            div.innerHTML = `
+
+                <div class="day-name">
+
+                    ${
+                        index === 0
+                            ? "Today"
+                            : day.day
+                    }
+
+                </div>
+
+                <div class="day-date">
+
+                    ${day.display_date}
+
+                </div>
+
+                <div class="day-status
+                    ${
+                        day.status === "Suitable"
+                            ? "suitable"
+                            : "not-suitable"
+                    }
+                ">
+
+                    ${day.status}
+
+                </div>
+
+            `;
+
+
+            container.appendChild(
+                div
+            );
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// DAILY CHART
+// ============================================================
+
+function renderDailyChart() {
+
+    const canvas =
+        element("dailyChart");
+
+
+    if (!canvas) {
+
+        return;
+
+    }
+
+
+    if (dailyChart) {
+
+        dailyChart.destroy();
+
+    }
+
+
+    const labels =
+        dailyData.map(
+            day =>
+                day.display_date
+        );
+
+
+    const values =
+        dailyData.map(
+            day =>
+                Number(
+                    day.suitable_percentage
+                )
+        );
+
+
+    dailyChart =
+        new Chart(
+
+            canvas,
+
+            {
+
+                type: "line",
+
+                data: {
+
+                    labels: labels,
+
+                    datasets: [
+
+                        {
+
+                            label:
+                                "Suitable Daytime Hours (%)",
+
+                            data:
+                                values,
+
+                            borderColor:
+                                "#4f8277",
+
+                            backgroundColor:
+                                "rgba(79,130,119,0.10)",
+
+                            fill:
+                                true,
+
+                            tension:
+                                0.35,
+
+                            pointRadius:
+                                4,
+
+                            pointHoverRadius:
+                                7,
+
+                            pointBackgroundColor:
+                                "#d6a64f",
+
+                            pointBorderColor:
+                                "#ffffff",
+
+                            pointBorderWidth:
+                                2
+
+                        }
+
+                    ]
+
+                },
+
+
+                options: {
+
+                    responsive:
+                        true,
+
+                    maintainAspectRatio:
+                        false,
+
+
+                    interaction: {
+
+                        mode:
+                            "index",
+
+                        intersect:
+                            false
+
+                    },
+
+
+                    plugins: {
+
+                        legend: {
+
+                            labels: {
+
+                                color:
+                                    "#68777b",
+
+                                font: {
+
+                                    family:
+                                        "Segoe UI",
+
+                                    size:
+                                        10
+
+                                }
+
+                            }
+
+                        },
+
+
+                        tooltip: {
+
+                            backgroundColor:
+                                "#26383a",
+
+                            padding:
+                                10,
+
+                            callbacks: {
+
+                                label:
+                                    function(context) {
+
+                                        return (
+                                            " Suitable hours: "
+                                            +
+                                            context.parsed.y
+                                            +
+                                            "%"
+                                        );
+
+                                    }
+
+                            }
+
+                        }
+
+                    },
+
+
+                    scales: {
+
+                        x: {
+
+                            ticks: {
+
+                                color:
+                                    "#7b898d",
+
+                                font: {
+
+                                    size:
+                                        10
+
+                                }
+
+                            },
+
+                            grid: {
+
+                                color:
+                                    "#edf0ef"
+
+                            }
+
+                        },
+
+
+                        y: {
+
+                            beginAtZero:
+                                true,
+
+                            max:
+                                100,
+
+                            ticks: {
+
+                                color:
+                                    "#7b898d",
+
+                                callback:
+                                    value =>
+                                        value + "%"
+
+                            },
+
+                            grid: {
+
+                                color:
+                                    "#edf0ef"
+
+                            }
+
+                        }
+
+                    },
+
+
+                    onClick:
+                        function(
+                            event,
+                            elements
+                        ) {
+
+                            if (
+                                elements.length > 0
+                            ) {
+
+                                const index =
+                                    elements[0].index;
+
+
+                                if (
+                                    dailyData[index]
+                                ) {
+
+                                    selectDay(
+                                        dailyData[index].date
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                }
+
+            }
+
+        );
+
+}
+
+
+// ============================================================
+// SELECT DAY
+// ============================================================
+
+function selectDay(date) {
+
+    selectedDate =
+        date;
+
+
+    document
+        .querySelectorAll(
+            ".day-item"
+        )
+        .forEach(
+            item => {
+
+                item.classList.toggle(
+
+                    "active",
+
+                    item.dataset.date === date
+
+                );
+
+            }
+        );
+
+
+    const selected =
+        dailyData.find(
+            day =>
+                day.date === date
+        );
+
+
+    if (!selected) {
+
+        return;
+
+    }
+
+
+    element("selectedDayTitle").textContent =
+
+        `${selected.day}, ${selected.display_date}`;
+
+
+    element("selectedDaySubtitle").textContent =
+
+        `${selected.status} · ${selected.suitable_hours} suitable daytime hours out of ${selected.total_hours}`;
+
+
+    renderHourlyData(
+        date
+    );
+
+}
+
+
+// ============================================================
+// GET HOURLY DATA
+// ============================================================
+
+function getDayHourlyData(date) {
+
+    return hourlyData.filter(
+
+        row =>
+
+            row.date === date &&
+
+            Number(row.hour) >= 6 &&
+
+            Number(row.hour) <= 18
+
+    );
+
+}
+
+
+// ============================================================
+// RENDER HOURLY DATA
+// ============================================================
+
+function renderHourlyData(date) {
+
+    const data =
+        getDayHourlyData(
+            date
+        );
+
+
+    renderHourlyChart(
+        data
+    );
+
+
+    renderHourlyTable(
+        data
+    );
+
+}
+
+
+// ============================================================
+// HOURLY CHART
+// ============================================================
+
+function renderHourlyChart(data) {
+
+    const canvas =
+        element("hourlyChart");
+
+
+    if (!canvas) {
+
+        return;
+
+    }
+
+
+    if (hourlyChart) {
+
+        hourlyChart.destroy();
+
+    }
+
+
+    const labels =
+        data.map(
+            row =>
+                row.display_time
+        );
+
+
+    const temperature =
+        data.map(
+            row =>
+                Number(row.temperature)
+        );
+
+
+    const humidity =
+        data.map(
+            row =>
+                Number(row.humidity)
+        );
+
+
+    hourlyChart =
+        new Chart(
+
+            canvas,
+
+            {
+
+                type: "line",
+
+
+                data: {
+
+                    labels: labels,
+
+
+                    datasets: [
+
+                        {
+
+                            label:
+                                "Temperature (°C)",
+
+                            data:
+                                temperature,
+
+                            borderColor:
+                                "#d18a46",
+
+                            backgroundColor:
+                                "rgba(209,138,70,0.07)",
+
+                            fill:
+                                true,
+
+                            tension:
+                                0.35,
+
+                            pointRadius:
+                                2
+
+                        },
+
+
+                        {
+
+                            label:
+                                "Humidity (%)",
+
+                            data:
+                                humidity,
+
+                            borderColor:
+                                "#5f8f9d",
+
+                            backgroundColor:
+                                "transparent",
+
+                            fill:
+                                false,
+
+                            tension:
+                                0.35,
+
+                            pointRadius:
+                                2
+
+                        }
+
+                    ]
+
+                },
+
+
+                options: {
+
+                    responsive:
+                        true,
+
+                    maintainAspectRatio:
+                        false,
+
+
+                    interaction: {
+
+                        mode:
+                            "index",
+
+                        intersect:
+                            false
+
+                    },
+
+
+                    plugins: {
+
+                        legend: {
+
+                            labels: {
+
+                                color:
+                                    "#68777b",
+
+                                font: {
+
+                                    size:
+                                        10
+
+                                }
+
+                            }
+
+                        },
+
+
+                        tooltip: {
+
+                            backgroundColor:
+                                "#26383a",
+
+                            padding:
+                                10
+
+                        }
+
+                    },
+
+
+                    scales: {
+
+                        x: {
+
+                            ticks: {
+
+                                color:
+                                    "#7b898d",
+
+                                autoSkip:
+                                    true,
+
+                                maxTicksLimit:
+                                    8
+
+                            },
+
+                            grid: {
+
+                                color:
+                                    "#edf0ef"
+
+                            }
+
+                        },
+
+
+                        y: {
+
+                            ticks: {
+
+                                color:
+                                    "#7b898d"
+
+                            },
+
+                            grid: {
+
+                                color:
+                                    "#edf0ef"
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        );
+
+}
+
+
+// ============================================================
+// HOURLY TABLE
+// ============================================================
+
+function renderHourlyTable(data) {
+
+    const tbody =
+        element("hourlyTable");
+
+
+    tbody.innerHTML =
+        "";
+
+
+    data.forEach(
+        row => {
+
+
+            const tr =
+                document.createElement(
+                    "tr"
+                );
+
+
+            const statusClass =
+                row.status === "Suitable"
+
+                    ? "suitable"
+
+                    : "not-suitable";
+
+
+            const icon =
+                row.status === "Suitable"
+
+                    ? "fa-check"
+
+                    : "fa-xmark";
+
+
+            const probability =
+                Number(
+                    row.suitable_probability
+                );
+
+
+            const safeProbability =
+                Number.isFinite(probability)
+
+                    ? Math.max(
+                        0,
+                        Math.min(
+                            100,
+                            probability
+                        )
+                    )
+
+                    : 0;
+
+
+            tr.innerHTML = `
+
+                <td>
+                    ${row.display_time}
+                </td>
+
+                <td>
+                    ${row.temperature} °C
+                </td>
+
+                <td>
+                    ${row.humidity} %
+                </td>
+
+                <td>
+                    ${row.rainfall} mm
+                </td>
+
+                <td>
+                    ${row.wind} m/s
+                </td>
+
+                <td>
+
+                    <span
+                        class="status-badge ${statusClass}"
+                    >
+
+                        <i
+                            class="fa-solid ${icon}"
+                        ></i>
+
+                        ${row.status}
+
+                    </span>
+
+                </td>
+
+                <td>
+                    ${safeProbability.toFixed(2)}%
+                </td>
+
+            `;
+
+
+            tbody.appendChild(
+                tr
+            );
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        // Start clock
+        updateClock();
+
+
+        setInterval(
+            updateClock,
+            1000
+        );
+
+
+        // Start with empty parameters
+        resetParameters();
+
+
+        // Reset dashboard
+        resetDashboard();
+
+
+        // Hide loading screen
+        hideLoading();
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
